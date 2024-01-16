@@ -30,9 +30,9 @@ async def create_user(user_data: UserCreate) -> Any:
                  response_model=list[UserGet],
                  name='Get some users')
 async def get_some_users(current_user: Annotated[UserDB, Depends(get_current_user)],
-                         page: int = Query(default=1, ge=1),
-                         limit: int = Query(default=5, gt=0, le=10),
-                         ordering: str = Query('username', enum=list(UserGet.model_fields)),
+                         page: Annotated[int, Query(gt=0)] = 1,
+                         limit: Annotated[int, Query(gt=0, le=10)] = 5,
+                         ordering: Annotated[str, Query(enum=list(UserGet.model_fields))] = 'username',
                          reverse: bool = False) -> Any:
     offset = (page - 1) * limit
     return await get_some_users_db(offset=offset,

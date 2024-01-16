@@ -21,9 +21,9 @@ thread_router = APIRouter()
                    response_model=list[ThreadGet],
                    name='Get some threads')
 async def get_some_threads(current_user: Annotated[UserDB, Depends(get_current_user)],
-                           page: int = Query(default=1, ge=1),
-                           limit: int = Query(default=5, gt=0, le=10),
-                           ordering: str = Query(default='title', enum=list(ThreadGet.model_fields)),
+                           page: Annotated[int, Query(gt=0)] = 1,
+                           limit: Annotated[int, Query(gt=0, le=10)] = 5,
+                           ordering: Annotated[str, Query(enum=list(ThreadGet.model_fields))] = 'title',
                            reverse: bool = False) -> Any:
     offset = (page - 1) * limit
     return await get_some_threads_db(offset=offset,
