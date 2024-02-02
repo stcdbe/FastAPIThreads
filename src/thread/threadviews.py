@@ -1,17 +1,12 @@
 from typing import Annotated, Any
 
-from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.database.dbmodels import UserDB
-from src.thread.threadschemas import CommentCreate, ThreadCreate, ThreadGet, ThredWithCommentsGet
-from src.thread.threadservice import (create_com_db,
-                                      create_thread_db,
-                                      del_thread_db,
-                                      get_some_threads_db,
-                                      get_thread_db)
-from src.auth.authutils import get_current_user
-
+from src.auth.authdependencies import CurrentUserDep
+from src.thread.threaddependencies import get_thread_list_params, validate_thread_id, ThreadServiceDep
+from src.thread.threadmodels import ThreadDB
+from src.thread.threadschemas import CommentCreate, ThreadCreate, ThreadGet, ThreadWithCommentsGet
+from src.user.userenums import UserStatus
 
 thread_router = APIRouter()
 
@@ -20,70 +15,52 @@ thread_router = APIRouter()
                    status_code=200,
                    response_model=list[ThreadGet],
                    name='Get some threads')
-async def get_some_threads(current_user: Annotated[UserDB, Depends(get_current_user)],
-                           page: Annotated[int, Query(gt=0)] = 1,
-                           limit: Annotated[int, Query(gt=0, le=10)] = 5,
-                           ordering: Annotated[str, Query(enum=list(ThreadGet.model_fields))] = 'title',
-                           reverse: bool = False) -> Any:
-    offset = (page - 1) * limit
-    return await get_some_threads_db(offset=offset,
-                                     limit=limit,
-                                     ordering=ordering,
-                                     reverse=reverse)
+async def get_some_threads(current_user: CurrentUserDep,
+                           thread_service: ThreadServiceDep,
+                           params: Annotated[dict[str, Any], Depends(get_thread_list_params)]) -> list[ThreadDB]:
+    return await thread_service.get_list(params=params)
 
 
 @thread_router.post('',
                     status_code=201,
                     response_model=ThreadGet,
                     name='Crete a new thread')
-async def create_thread(current_user: Annotated[UserDB, Depends(get_current_user)],
+async def create_thread(current_user: CurrentUserDep,
+                        thread_service: ThreadServiceDep,
                         thread_data: ThreadCreate) -> Any:
-    return await create_thread_db(thread_data=thread_data, creator=current_user)
+    return await thread_service.create_one(thread_data=thread_data)
 
 
 @thread_router.get('/{thread_id}',
                    status_code=200,
-                   response_model=ThredWithCommentsGet,
+                   response_model=ThreadWithCommentsGet,
                    name='Get the thread by id')
-async def get_thread(current_user: Annotated[UserDB, Depends(get_current_user)],
-                     thread_id: PydanticObjectId) -> Any:
-    thread = await get_thread_db(thread_id=thread_id)
-
-    if not thread:
-        raise HTTPException(status_code=404, detail='Not found')
-
+async def get_thread(current_user: CurrentUserDep,
+                     thread: Annotated[ThreadDB, Depends(validate_thread_id)]) -> ThreadDB:
     return thread
 
 
 @thread_router.post('/{thread_id}',
                     status_code=201,
-                    response_model=ThredWithCommentsGet,
+                    response_model=ThreadWithCommentsGet,
                     name='Create a new thread comment')
-async def create_thread_com(current_user: Annotated[UserDB, Depends(get_current_user)],
-                            thread_id: PydanticObjectId,
-                            com_data: CommentCreate) -> Any:
-    thread = await get_thread_db(thread_id=thread_id)
-
-    if not thread:
-        raise HTTPException(status_code=404, detail='Not found')
-
+async def create_thread_com(current_user: CurrentUserDep,
+                            thread_service: ThreadServiceDep,
+                            thread: Annotated[ThreadDB, Depends(validate_thread_id)],
+                            com_data: CommentCreate) -> ThreadDB:
     if not thread.is_active:
         raise HTTPException(status_code=409, detail='Thread is closed')
 
-    return await create_com_db(com_data=com_data, thread=thread)
+    return await thread_service.create_com(thread=thread, com_data=com_data)
 
 
 @thread_router.delete('/{thread_id}',
                       status_code=204,
                       name='Delete the thread by id')
-async def del_thread(current_user: Annotated[UserDB, Depends(get_current_user)],
-                     thread_id: PydanticObjectId) -> None:
-    thread = await get_thread_db(thread_id=thread_id)
-
-    if not thread:
-        raise HTTPException(status_code=404, detail='Not found')
-
-    if current_user.id != thread.creator.id:
+async def del_thread(current_user: CurrentUserDep,
+                     thread_service: ThreadServiceDep,
+                     thread: Annotated[ThreadDB, Depends(validate_thread_id)]) -> None:
+    if current_user.status != UserStatus.admin:
         raise HTTPException(status_code=403, detail='Forbidden request')
 
-    await del_thread_db(thread=thread)
+    await thread_service.del_one(thread=thread)

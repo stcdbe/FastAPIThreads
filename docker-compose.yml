@@ -4,26 +4,26 @@ services:
 
   mongo:
     container_name: fastapi-mongo
-    image: mongo:latest
+    image: mongo:6.0.13
+    restart: on-failure
     ports:
       - "27017:27017"
     expose:
       - "27017"
-    restart: on-failure
     networks:
       - custom
 
   web:
     container_name: fastapi-web
     build: .
+    restart: on-failure
+    command: 'sh -c "gunicorn -c gunicorn.conf.py asgi:app"'
     env_file:
       - .env
     ports:
       - ${PORT}:${PORT}
     expose:
       - ${PORT}
-    command: 'sh -c "gunicorn -c gunicorn.conf.py asgi:app"'
-    restart: on-failure
     depends_on:
       - mongo
     networks:

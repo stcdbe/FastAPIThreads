@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, EmailStr
 from beanie import PydanticObjectId
+from pydantic import BaseModel, ConfigDict, StringConstraints, EmailStr
 
+from src.user.userenums import UserStatus
 
 
 class User(BaseModel):
@@ -18,7 +19,7 @@ class User(BaseModel):
 
 class UserCreate(User):
     password: Annotated[str, StringConstraints(strip_whitespace=True,
-                                               min_length=6,####################
+                                               min_length=6,
                                                max_length=72)]
 
 
@@ -30,10 +31,11 @@ class UserPatch(UserCreate):
                                                  min_length=5,
                                                  max_length=50)] | None = None
     password: Annotated[str, StringConstraints(strip_whitespace=True,
-                                               min_length=6,##########################
+                                               min_length=6,
                                                max_length=72)] | None = None
 
 
 class UserGet(User):
     id: PydanticObjectId
     join_date: datetime
+    status: UserStatus

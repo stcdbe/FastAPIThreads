@@ -4,11 +4,7 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_some_threads(client: AsyncClient, user_token_headers: dict[str, str]) -> None:
-    params = {'page': 1,
-              'limit': 5,
-              'ordering': 'username',
-              'reverse': False}
-    res = await client.get('/api/threads', params=params, headers=user_token_headers)
+    res = await client.get('/api/threads', headers=user_token_headers)
     assert res.status_code == 200
 
 
@@ -55,4 +51,4 @@ async def test_del_thread(client: AsyncClient,
                           test_thread_id: str,
                           user_token_headers: dict[str, str]) -> None:
     res = await client.delete(f'/api/threads/{test_thread_id}', headers=user_token_headers)
-    assert res.status_code == 204
+    assert res.status_code == 403

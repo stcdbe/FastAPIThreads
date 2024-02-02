@@ -4,13 +4,7 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio(scope='session')
 async def test_get_some_users(client: AsyncClient, user_token_headers: dict[str, str]) -> None:
-    params = {'page': 1,
-              'limit': 5,
-              'ordering': 'username',
-              'reverse': False}
-    res = await client.get('/api/users',
-                           params=params,
-                           headers=user_token_headers)
+    res = await client.get('/api/users', headers=user_token_headers)
     assert res.status_code == 200
 
 
@@ -44,8 +38,8 @@ async def test_patch_me(client: AsyncClient, user_token_headers: dict[str, str])
                        'email': 'patch_email@example.com',
                        'password': 'passwordpassword'}
     res = await client.patch('/api/users/me',
-                               json=patch_user_data,
-                               headers=user_token_headers)
+                             json=patch_user_data,
+                             headers=user_token_headers)
     upd_user = res.json()
     assert res.status_code == 200
     assert upd_user
