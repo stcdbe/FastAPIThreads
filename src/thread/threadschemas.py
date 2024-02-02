@@ -4,8 +4,6 @@ from typing import Annotated
 from beanie import PydanticObjectId
 from pydantic import BaseModel, Field, StringConstraints, ConfigDict
 
-from src.user.userschemas import UserGet
-
 
 class CommentCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -32,8 +30,7 @@ class ThreadGet(ThreadCreate):
     id: PydanticObjectId
     is_active: bool
     created_at: datetime
-    creator: UserGet
 
 
-class ThredWithCommentsGet(ThreadGet):
+class ThreadWithCommentsGet(ThreadGet):
     comments: list[CommentGet]

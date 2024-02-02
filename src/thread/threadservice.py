@@ -1,39 +1,37 @@
-from beanie import PydanticObjectId
+from typing import Any, Annotated
 
-from src.database.dbmodels import ThreadDB, UserDB
+from fastapi import Depends
+
+from src.thread.threadmodels import ThreadDB
+from src.thread.threadrepository import ThreadRepository
 from src.thread.threadschemas import CommentCreate, CommentGet, ThreadCreate
 
 
-async def get_thread_db(thread_id: PydanticObjectId) -> ThreadDB | None:
-    return await ThreadDB.find_one(ThreadDB.id == thread_id, fetch_links=True)
+class ThreadService:
+    def __init__(self, thread_repository: Annotated[ThreadRepository, Depends()]) -> None:
+        self._thread_repository = thread_repository
 
+    async def get_list(self, params: dict[str, Any]) -> list[ThreadDB]:
+        offset = (params['page'] - 1) * params['limit']
+        return await self._thread_repository.get_list(offset=offset,
+                                                      limit=params['limit'],
+                                                      ordering=params['ordering'],
+                                                      reverse=params['reverse'])
 
-async def get_some_threads_db(offset: int,
-                              limit: int,
-                              ordering: str,
-                              reverse: bool) -> list[ThreadDB]:
-    threads = await ThreadDB.find_all().skip(offset).limit(limit).sort(ordering).to_list()
+    async def get_one(self, **kwargs: Any) -> ThreadDB | None:
+        return await self._thread_repository.get_one(**kwargs)
 
-    if reverse:
-        threads = threads[::-1]
+    async def create_one(self, thread_data: ThreadCreate) -> ThreadDB:
+        new_thread = ThreadDB(**thread_data.model_dump(mode='json'))
+        return await self._thread_repository.create_one(new_thread=new_thread)
 
-    return threads
+    async def create_com(self, thread: ThreadDB, com_data: CommentCreate) -> ThreadDB:
+        if len(thread.comments) == 99:
+            thread.is_active = False
 
+        new_com = CommentGet(**com_data.model_dump(mode='json'))
+        thread.comments.append(new_com)
+        return await self._thread_repository.patch_one(thread=thread)
 
-async def create_thread_db(thread_data: ThreadCreate, creator: UserDB) -> ThreadDB | None:
-    new_thread = ThreadDB(creator=creator, **thread_data.model_dump(mode='json'))
-    return await ThreadDB.insert_one(new_thread)
-
-
-async def create_com_db(thread: ThreadDB, com_data: CommentCreate) -> ThreadDB:
-    if len(thread.comments) == 99:
-        thread.is_active = False
-
-    new_com = CommentGet(**com_data.model_dump(mode='json'))
-    thread.comments.append(new_com)
-    await thread.replace()
-    return thread
-
-
-async def del_thread_db(thread: ThreadDB) -> None:
-    await thread.delete()
+    async def del_one(self, thread: ThreadDB) -> None:
+        await self._thread_repository.del_one(thread=thread)

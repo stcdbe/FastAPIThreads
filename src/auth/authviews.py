@@ -1,15 +1,13 @@
 from datetime import timedelta
-from typing import Annotated, Any
+from typing import Annotated
 
-from fastapi import Depends, HTTPException, APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends, APIRouter
 
-from src.config import settings
+from src.auth.authdependencies import validate_oauth2_form
 from src.auth.authschemas import Token
-from src.user.userservice import get_user_by_username_db
 from src.auth.authutils import generate_token
-from src.auth.hasher import Hasher
-
+from src.config import settings
+from src.user.usermodels import UserDB
 
 login_router = APIRouter()
 
@@ -18,15 +16,7 @@ login_router = APIRouter()
                    status_code=201,
                    response_model=Token,
                    name='Create an access token')
-async def create_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Any:
-    user = await get_user_by_username_db(username=form_data.username)
-
-    if not user:
-        raise HTTPException(status_code=404, detail='Not found')
-
-    if not Hasher.verify_psw(psw=form_data.password, hashed_psw=user.password):
-        raise HTTPException(status_code=400, detail='Invalid username or password')
-
+async def create_token(user: Annotated[UserDB, Depends(validate_oauth2_form)]) -> dict[str, str]:
     token = await generate_token(user_id=str(user.id),
                                  expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRES))
     return {'access_token': token, 'token_type': 'bearer'}

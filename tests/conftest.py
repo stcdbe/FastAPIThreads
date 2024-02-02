@@ -7,8 +7,8 @@ from httpx import AsyncClient
 
 from src.config import settings
 from src.main import app
-from src.database.dbmodels import UserDB, ThreadDB
-
+from src.user.usermodels import UserDB
+from src.thread.threadmodels import ThreadDB
 
 mongo_client = AsyncIOMotorClient(settings.MONGO_URL_TEST)
 db = mongo_client[settings.MONGO_DB_TEST]
@@ -44,8 +44,8 @@ async def user_token_headers(client: AsyncClient) -> dict[str, str]:
                 'password': 'passwordpassword'}
     await client.post('/api/users', json=reg_data)
 
-    auth_form_data = {'username': reg_data['username'], 'password': reg_data['password']}
-    res = await client.post('api/auth/create_token', data=auth_form_data)
+    reg_data.pop('email')
+    res = await client.post('api/auth/create_token', data=reg_data)
 
     access_token = res.json()['access_token']
     return {'Authorization': f'Bearer {access_token}'}
