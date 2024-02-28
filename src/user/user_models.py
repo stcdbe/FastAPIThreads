@@ -4,7 +4,7 @@ from typing import Annotated
 from beanie import Document, Indexed
 from pydantic import Field
 
-from src.user.userenums import UserStatus
+from src.user.user_enums import UserStatus
 
 
 class UserDB(Document):

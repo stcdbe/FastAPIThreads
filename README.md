@@ -16,7 +16,7 @@ ___
 + install dependencies using Poetry
 
 ````
-$ poetry install
+$ poetry install --no-root
 ````
 
 + configure environment variables in `.env` file

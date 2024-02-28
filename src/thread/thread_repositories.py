@@ -2,11 +2,11 @@ from typing import Any
 
 from pymongo import DESCENDING
 
-from src.repository import AbstractRepository
-from src.thread.threadmodels import ThreadDB
+from src.repositories import MongoRepository
+from src.thread.thread_models import ThreadDB
 
 
-class ThreadRepository(AbstractRepository):
+class ThreadRepository(MongoRepository):
     async def get_list(self,
                        offset: int,
                        limit: int,

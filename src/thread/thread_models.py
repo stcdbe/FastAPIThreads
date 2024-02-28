@@ -1,10 +1,9 @@
 from datetime import datetime
 
-from beanie import Document, Link
+from beanie import Document
 from pydantic import Field
 
-from src.user.usermodels import UserDB
-from src.thread.threadschemas import CommentGet
+from src.thread.thread_schemas import CommentGet
 
 
 class ThreadDB(Document):

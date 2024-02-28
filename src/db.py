@@ -2,8 +2,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from src.config import settings
-from src.user.usermodels import UserDB
-from src.thread.threadmodels import ThreadDB
+from src.user.user_models import UserDB
+from src.thread.thread_models import ThreadDB
 
 
 async def init_db() -> None:

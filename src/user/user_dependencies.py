@@ -3,9 +3,9 @@ from typing import Any, Annotated
 from fastapi import HTTPException, Query, Depends
 from beanie import PydanticObjectId
 
-from src.user.usermodels import UserDB
-from src.user.userschemas import UserGet
-from src.user.userservice import UserService
+from src.user.user_models import UserDB
+from src.user.user_schemas import UserGet
+from src.user.user_services import UserService
 
 UserServiceDep = Annotated[UserService, Depends()]
 
@@ -27,3 +27,5 @@ async def validate_user_id(user_service: UserServiceDep, user_id: PydanticObject
         raise HTTPException(status_code=404, detail='Not found')
 
     return user
+
+
