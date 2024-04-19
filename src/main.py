@@ -1,33 +1,26 @@
-from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
-
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from src.auth.auth_views import login_router
-from src.db import init_db
-from src.thread.thread_views import thread_router
-from src.user.user_views import user_router
 from src.config import settings
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[Any, None]:
-    await init_db()
-    yield
-
+from src.core.presentation.schemas import Message
+from src.modules.auth.views.routes import auth_router
+from src.modules.thread.views.routes import thread_router
+from src.modules.user.views.routes import user_router
 
 app = FastAPI(debug=settings.DEBUG,
-              version='0.1.4',
+              version='0.2.0',
               title='FastAPIThreads',
-              lifespan=lifespan,
               docs_url=settings.DOCS_URL,
               redoc_url=settings.REDOC_URL)
 
-main_api_router = APIRouter(prefix='/api')
+api_v1_router = APIRouter(prefix='/api/v1')
 
-main_api_router.include_router(router=login_router)
-main_api_router.include_router(router=user_router)
-main_api_router.include_router(router=thread_router)
+for router in (user_router, auth_router, thread_router):
+    api_v1_router.include_router(router=router)
 
-app.include_router(main_api_router)
+app.include_router(router=api_v1_router)
+
+
+@app.get(path='/ping', status_code=200, response_model=Message)
+async def healthcheck() -> dict[str, str]:
+    return {'message': 'pong'}
