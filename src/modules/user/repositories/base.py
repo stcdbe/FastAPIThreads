@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from src.modules.user.models.entities import User
 

@@ -1,4 +1,4 @@
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends
 
@@ -15,10 +15,12 @@ class UserService:
         self._repository = repository
 
     async def get_list(self, params: dict[str, Any]) -> list[User]:
-        return await self._repository.get_list(offset=params['offset'],
-                                               limit=params['limit'],
-                                               order_by=params['ordering'],
-                                               reverse=params['reverse'])
+        return await self._repository.get_list(
+            offset=params["offset"],
+            limit=params["limit"],
+            order_by=params["ordering"],
+            reverse=params["reverse"],
+        )
 
     async def get_one(self, **kwargs: Any) -> User | None:
         return await self._repository.get_one(**kwargs)
@@ -27,10 +29,10 @@ class UserService:
         data.email = data.email.lower()
 
         if bool(await self._repository.count(username=data.username)):
-            raise InvalidUserDataError('Username must be unique')
+            raise InvalidUserDataError("Username must be unique")
 
         if bool(await self._repository.count(email=data.email)):
-            raise InvalidUserDataError('Email must be unique')
+            raise InvalidUserDataError("Email must be unique")
 
         data.password = Hasher.gen_psw_hash(psw=data.password)
 

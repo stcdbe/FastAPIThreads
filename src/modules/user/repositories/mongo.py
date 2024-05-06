@@ -1,4 +1,5 @@
-from typing import Any, Annotated, Mapping
+from collections.abc import Mapping
+from typing import Annotated, Any
 
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -19,7 +20,7 @@ class MongoUserRepository(AbstractUserRepository):
 
     async def get_list(self, offset: int, limit: int, order_by: str, reverse: bool = False) -> list[User]:
         if reverse:
-            order_by = ((order_by, DESCENDING,),)
+            order_by = ((order_by, DESCENDING),)
 
         cursor = self._collection.find().skip(skip=offset).limit(limit=limit).sort(key_or_list=order_by)
 
@@ -29,9 +30,10 @@ class MongoUserRepository(AbstractUserRepository):
         doc = await self._collection.find_one(filter=kwargs)
         if doc is not None:
             return convert_user_doc_to_entity(data=doc)
+        return None
 
     async def create_one(self, user: User) -> None:
         await self._collection.insert_one(document=user.dump_to_dict())
 
     async def patch_one(self, user: User, data: Mapping[str, Any]) -> None:
-        await self._collection.find_one_and_update(filter={'guid': user.guid}, update={'$set': data})
+        await self._collection.find_one_and_update(filter={"guid": user.guid}, update={"$set": data})

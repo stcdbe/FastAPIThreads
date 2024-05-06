@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from src.modules.thread.models.entities import Thread, Comment
+from src.modules.thread.models.entities import Comment, Thread
 
 
 class AbstractThreadRepository(ABC):

@@ -1,15 +1,13 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import StringConstraints, UUID4
+from pydantic import UUID4, StringConstraints
 
 from src.core.presentation.schemas import AttrsBaseModel
 
 
 class _CommentBase(AttrsBaseModel):
-    text: Annotated[str, StringConstraints(strip_whitespace=True,
-                                           min_length=5,
-                                           max_length=250)]
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=250)]
 
 
 class CommentCreate(_CommentBase):
@@ -22,12 +20,8 @@ class CommentGet(_CommentBase):
 
 
 class _ThreadBase(AttrsBaseModel):
-    title: Annotated[str, StringConstraints(strip_whitespace=True,
-                                            min_length=5,
-                                            max_length=100)]
-    text: Annotated[str, StringConstraints(strip_whitespace=True,
-                                           min_length=5,
-                                           max_length=500)]
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=100)]
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=500)]
 
 
 class ThreadCreate(_ThreadBase):

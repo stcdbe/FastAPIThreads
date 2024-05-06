@@ -7,13 +7,15 @@ from src.modules.auth.views.routes import auth_router
 from src.modules.thread.views.routes import thread_router
 from src.modules.user.views.routes import user_router
 
-app = FastAPI(debug=settings.DEBUG,
-              version='0.2.0',
-              title='FastAPIThreads',
-              docs_url=settings.DOCS_URL,
-              redoc_url=settings.REDOC_URL)
+app = FastAPI(
+    debug=settings.DEBUG,
+    version="0.2.0",
+    title="FastAPIThreads",
+    docs_url=settings.DOCS_URL,
+    redoc_url=settings.REDOC_URL,
+)
 
-api_v1_router = APIRouter(prefix='/api/v1')
+api_v1_router = APIRouter(prefix="/api/v1")
 
 for router in (user_router, auth_router, thread_router):
     api_v1_router.include_router(router=router)
@@ -21,6 +23,6 @@ for router in (user_router, auth_router, thread_router):
 app.include_router(router=api_v1_router)
 
 
-@app.get(path='/ping', status_code=200, response_model=Message)
+@app.get(path="/ping", status_code=200, response_model=Message)
 async def healthcheck() -> dict[str, str]:
-    return {'message': 'pong'}
+    return {"message": "pong"}

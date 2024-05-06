@@ -1,4 +1,4 @@
-from dataclasses import field, dataclass, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any
 from uuid import UUID, uuid4
 

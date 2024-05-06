@@ -1,4 +1,4 @@
-from typing import Any, Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import Depends
@@ -14,10 +14,12 @@ class ThreadService:
         self._repository = repository
 
     async def get_list(self, params: dict[str, Any]) -> list[Thread]:
-        return await self._repository.get_list(offset=params['offset'],
-                                               limit=params['limit'],
-                                               order_by=params['ordering'],
-                                               reverse=params['reverse'])
+        return await self._repository.get_list(
+            offset=params["offset"],
+            limit=params["limit"],
+            order_by=params["ordering"],
+            reverse=params["reverse"],
+        )
 
     async def get_one(self, guid: UUID) -> Thread | None:
         return await self._repository.get_one(guid=guid)

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from jwt import decode, encode, InvalidTokenError, DecodeError
+from jwt import DecodeError, InvalidTokenError, decode, encode
 
 from src.config import settings
 from src.modules.auth.exceptions.exceptions import InvalidAuthDataError
@@ -19,12 +19,12 @@ class AuthService:
 
     def _generate_token(self, sub: str, exp_delta: timedelta) -> str:
         expires = datetime.utcnow() + exp_delta
-        to_encode = {'exp': expires, 'sub': sub}
+        to_encode = {"exp": expires, "sub": sub}
         return encode(payload=to_encode, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     async def create_token(self, form_data: OAuth2PasswordRequestForm) -> dict[str, str]:
         user = await self._repository.get_one(username=form_data.username)
-        exc = InvalidAuthDataError('Incorrect username or password')
+        exc = InvalidAuthDataError("Incorrect username or password")
 
         if not user:
             raise exc
@@ -33,18 +33,16 @@ class AuthService:
             raise exc
 
         token = self._generate_token(sub=str(user.guid), exp_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRES))
-        return {'access_token': token, 'token_type': 'bearer'}
+        return {"access_token": token, "token_type": "bearer"}
 
     async def validate_token(self, token: str) -> User:
-        exc = InvalidAuthDataError('Could not validate credentials')
+        exc = InvalidAuthDataError("Could not validate credentials")
 
         try:
-            payload = decode(jwt=token,
-                             key=settings.JWT_SECRET_KEY,
-                             algorithms=[settings.JWT_ALGORITHM])
-            guid = UUID(payload['sub'])
-        except (InvalidTokenError, DecodeError, KeyError, ValueError):
-            raise exc
+            payload = decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            guid = UUID(payload["sub"])
+        except (InvalidTokenError, DecodeError, KeyError, ValueError) as e:
+            raise exc from e
 
         user = await self._repository.get_one(guid=guid)
 

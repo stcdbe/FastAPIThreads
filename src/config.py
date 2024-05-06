@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     ACCESS_TOKEN_EXPIRES: int
 
-    __MONGO_URL: str = "mongodb://{MONGO_HOST}:{MONGO_PORT}"
+    _MONGO_URL: str = "mongodb://{MONGO_HOST}:{MONGO_PORT}"
 
     MONGO_HOST: str
     MONGO_PORT: str
@@ -27,13 +27,13 @@ class Settings(BaseSettings):
 
     @property
     def MONGO_URL(self) -> str:
-        return self.__MONGO_URL.format(MONGO_HOST=self.MONGO_HOST, MONGO_PORT=self.MONGO_PORT)
+        return self._MONGO_URL.format(MONGO_HOST=self.MONGO_HOST, MONGO_PORT=self.MONGO_PORT)
 
     @property
     def MONGO_URL_TEST(self) -> str:
-        return self.__MONGO_URL.format(MONGO_HOST=self.MONGO_HOST_TEST, MONGO_PORT=self.MONGO_PORT_TEST)
+        return self._MONGO_URL.format(MONGO_HOST=self.MONGO_HOST_TEST, MONGO_PORT=self.MONGO_PORT_TEST)
 
-    model_config = SettingsConfigDict(env_file='./.env', case_sensitive=True)
+    model_config = SettingsConfigDict(env_file="./.env", case_sensitive=True)
 
 
 settings = Settings()
