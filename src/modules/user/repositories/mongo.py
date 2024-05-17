@@ -12,13 +12,21 @@ from src.modules.user.repositories.converters import convert_user_doc_to_entity
 
 
 class MongoUserRepository(AbstractUserRepository):
+    _collection: AsyncIOMotorCollection
+
     def __init__(self, collection: Annotated[AsyncIOMotorCollection, Depends(get_user_collection)]) -> None:
         self._collection = collection
 
     async def count(self, **kwargs: Any) -> int:
         return await self._collection.count_documents(filter=kwargs)
 
-    async def get_list(self, offset: int, limit: int, order_by: str, reverse: bool = False) -> list[User]:
+    async def get_list(
+        self,
+        offset: int,
+        limit: int,
+        order_by: str,
+        reverse: bool = False,
+    ) -> list[User]:
         if reverse:
             order_by = ((order_by, DESCENDING),)
 

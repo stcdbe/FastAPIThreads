@@ -10,6 +10,8 @@ from src.modules.thread.views.schemas import ThreadCreate
 
 
 class ThreadService:
+    _repository: AbstractThreadRepository
+
     def __init__(self, repository: Annotated[AbstractThreadRepository, Depends(MongoThreadRepository)]) -> None:
         self._repository = repository
 

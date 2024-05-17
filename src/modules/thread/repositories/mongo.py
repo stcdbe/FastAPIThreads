@@ -15,10 +15,18 @@ from src.modules.thread.repositories.converters import (
 
 
 class MongoThreadRepository(AbstractThreadRepository):
+    _collection: AsyncIOMotorCollection
+
     def __init__(self, collection: Annotated[AsyncIOMotorCollection, Depends(get_thread_collection)]) -> None:
         self._collection = collection
 
-    async def get_list(self, offset: int, limit: int, order_by: str, reverse: bool = False) -> list[Thread]:
+    async def get_list(
+        self,
+        offset: int,
+        limit: int,
+        order_by: str,
+        reverse: bool = False,
+    ) -> list[Thread]:
         if reverse:
             order_by = ((order_by, DESCENDING),)
 
@@ -40,7 +48,8 @@ class MongoThreadRepository(AbstractThreadRepository):
 
     async def add_comment(self, thread: Thread, comment: Comment) -> None:
         await self._collection.update_one(
-            filter={"guid": thread.guid}, update={"$push": {"comments": comment.dump_to_dict()}}
+            filter={"guid": thread.guid},
+            update={"$push": {"comments": comment.dump_to_dict()}},
         )
 
     async def delete_one(self, thread: Thread) -> None:

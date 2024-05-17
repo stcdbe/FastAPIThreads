@@ -1,7 +1,9 @@
 import bcrypt
 
+from src.modules.auth.utils.hasher.base import AbstractHasher
 
-class Hasher:
+
+class BcryptHasher(AbstractHasher):
     @staticmethod
     def gen_psw_hash(psw: str) -> str:
         return (bcrypt.hashpw(password=psw.encode(), salt=bcrypt.gensalt())).decode()
