@@ -4,12 +4,13 @@ from uuid import UUID
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from jwt import DecodeError, InvalidTokenError, decode, encode
 
 from src.config import settings
-from src.modules.auth.exceptions.exceptions import InvalidAuthDataError
+from src.modules.auth.exceptions.exceptions import InvalidAuthDataError, JWTDecodeError
 from src.modules.auth.utils.hasher.base import AbstractHasher
 from src.modules.auth.utils.hasher.bcrypt import BcryptHasher
+from src.modules.auth.utils.jwt.base import AbstractJWTManager
+from src.modules.auth.utils.jwt.pyjwt import PyJWTManager
 from src.modules.user.models.entities import User
 from src.modules.user.repositories.base import AbstractUserRepository
 from src.modules.user.repositories.mongo import MongoUserRepository
@@ -18,23 +19,22 @@ from src.modules.user.repositories.mongo import MongoUserRepository
 class AuthService:
     _repository: AbstractUserRepository
     _hasher: AbstractHasher
+    _jwt_manager: AbstractJWTManager
 
     def __init__(
         self,
         repository: Annotated[AbstractUserRepository, Depends(MongoUserRepository)],
         hasher: Annotated[AbstractHasher, Depends(BcryptHasher)],
+        jwt_manager: Annotated[AbstractJWTManager, Depends(PyJWTManager)],
     ) -> None:
         self._repository = repository
         self._hasher = hasher
+        self._jwt_manager = jwt_manager
 
     def _generate_token(self, sub: str, exp_delta: timedelta) -> str:
         expires = datetime.utcnow() + exp_delta
-        to_encode = {"exp": expires, "sub": sub}
-        return encode(
-            payload=to_encode,
-            key=settings.JWT_SECRET_KEY,
-            algorithm=settings.JWT_ALGORITHM,
-        )
+        payload = {"exp": expires, "sub": sub}
+        return self._jwt_manager.encode_token(payload=payload)
 
     async def create_token(self, form_data: OAuth2PasswordRequestForm) -> dict[str, str]:
         user = await self._repository.get_one(username=form_data.username)
@@ -53,13 +53,9 @@ class AuthService:
         exc = InvalidAuthDataError("Could not validate credentials")
 
         try:
-            payload = decode(
-                jwt=token,
-                key=settings.JWT_SECRET_KEY,
-                algorithms=[settings.JWT_ALGORITHM],
-            )
+            payload = self._jwt_manager.decode_token(token=token)
             guid = UUID(payload["sub"])
-        except (InvalidTokenError, DecodeError, KeyError, ValueError) as e:
+        except (JWTDecodeError, KeyError, ValueError) as e:
             raise exc from e
 
         user = await self._repository.get_one(guid=guid)

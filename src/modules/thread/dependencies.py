@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Query
@@ -18,20 +19,25 @@ async def get_thread_list_params(
     ordering: Annotated[str, Query(enum=tuple(ThreadGet.model_fields))] = "title",
     reverse: bool = False,
 ) -> dict[str, Any]:
-    return {"offset": offset, "limit": limit, "ordering": ordering, "reverse": reverse}
+    return {
+        "offset": offset,
+        "limit": limit,
+        "ordering": ordering,
+        "reverse": reverse,
+    }
 
 
 async def validate_thread_guid(thread_service: ThreadServiceDep, guid: UUID4) -> Thread:
     thread = await thread_service.get_one(guid=guid)
 
     if not thread:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Not found")
 
     return thread
 
 
 async def check_thread_is_active(thread: Annotated[Thread, Depends(validate_thread_guid)]) -> Thread:
     if not thread.is_active:
-        raise HTTPException(status_code=409, detail="Thread is closed")
+        raise HTTPException(status_code=HTTPStatus.CONFLICT, detail="Thread is closed")
 
     return thread

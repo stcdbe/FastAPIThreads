@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from httpx import AsyncClient
 
@@ -14,6 +16,6 @@ async def test_create_token(client: AsyncClient) -> None:
     form_data = {"username": "new_auth_username", "password": "passwordpassword"}
     res = await client.post("/api/v1/auth/create_token", data=form_data)
     token = res.json()
-    assert res.status_code == 201
+    assert res.status_code == HTTPStatus.CREATED
     assert token
     assert token["access_token"]

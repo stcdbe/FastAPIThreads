@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,7 +13,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @auth_router.post(
     path="/create_token",
-    status_code=201,
+    status_code=HTTPStatus.CREATED,
     response_model=TokenGet,
     name="Create an access token",
 )
@@ -23,4 +24,4 @@ async def create_token(
     try:
         return await auth_service.create_token(form_data=form_data)
     except InvalidAuthDataError as exc:
-        raise HTTPException(status_code=409, detail=exc.message) from exc
+        raise HTTPException(status_code=HTTPStatus.CONFLICT, detail=exc.message) from exc

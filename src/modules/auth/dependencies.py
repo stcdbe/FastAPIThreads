@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import Depends, HTTPException
@@ -16,7 +17,7 @@ async def get_current_user(auth_service: AuthServiceDep, token: TokenDep) -> Use
     try:
         return await auth_service.validate_token(token=token)
     except InvalidAuthDataError as exc:
-        raise HTTPException(status_code=401, detail=exc.message) from exc
+        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail=exc.message) from exc
 
 
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
@@ -24,7 +25,7 @@ CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 async def check_current_user_is_admin(user: CurrentUserDep) -> User:
     if user.status != UserStatus.admin:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Not enough permissions")
     return user
 
 

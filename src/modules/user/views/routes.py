@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,7 +14,7 @@ user_router = APIRouter(prefix="/users", tags=["Users"])
 
 @user_router.post(
     path="",
-    status_code=201,
+    status_code=HTTPStatus.CREATED,
     response_model=UserGet,
     name="Create a new user",
 )
@@ -21,12 +22,12 @@ async def create_user(user_service: UserServiceDep, data: UserCreate) -> User:
     try:
         return await user_service.create_one(data=data)
     except InvalidUserDataError as exc:
-        raise HTTPException(status_code=409, detail=exc.message) from exc
+        raise HTTPException(status_code=HTTPStatus.CONFLICT, detail=exc.message) from exc
 
 
 @user_router.get(
     path="",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=list[UserGet],
     name="Get some users",
 )
@@ -40,7 +41,7 @@ async def get_some_users(
 
 @user_router.get(
     path="/me",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=UserGet,
     name="Get the current user",
 )
@@ -50,7 +51,7 @@ async def get_me(current_user: CurrentUserDep) -> User:
 
 @user_router.patch(
     path="/me",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=UserGet,
     name="Patch the current user",
 )
@@ -64,7 +65,7 @@ async def patch_me(
 
 @user_router.get(
     path="/{guid}",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=UserGet,
     name="Get the user",
 )

@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Query
@@ -16,13 +17,18 @@ async def get_user_list_params(
     ordering: Annotated[str, Query(enum=tuple(UserGet.model_fields))] = "username",
     reverse: bool = False,
 ) -> dict[str, Any]:
-    return {"offset": offset, "limit": limit, "ordering": ordering, "reverse": reverse}
+    return {
+        "offset": offset,
+        "limit": limit,
+        "ordering": ordering,
+        "reverse": reverse,
+    }
 
 
 async def validate_user_guid(user_service: UserServiceDep, guid: UUID4) -> User:
     user = await user_service.get_one(guid=guid)
 
     if not user:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Not found")
 
     return user

@@ -1,8 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import UUID4, BaseModel, ConfigDict
 
 
-class AttrsBaseModel(BaseModel):
+class FromAttrsBaseModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+
+class GUIDMixin(BaseModel):
+    guid: UUID4
 
 
 class Message(BaseModel):

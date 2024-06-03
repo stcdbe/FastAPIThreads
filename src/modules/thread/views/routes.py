@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
@@ -18,7 +19,7 @@ thread_router = APIRouter(prefix="/threads", tags=["Threads"])
 
 @thread_router.get(
     path="",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=list[ThreadGet],
     name="Get some threads",
 )
@@ -32,7 +33,7 @@ async def get_some_threads(
 
 @thread_router.post(
     path="",
-    status_code=201,
+    status_code=HTTPStatus.CREATED,
     response_model=ThreadGet,
     name="Create a new thread",
 )
@@ -46,7 +47,7 @@ async def create_thread(
 
 @thread_router.get(
     path="/{guid}",
-    status_code=200,
+    status_code=HTTPStatus.OK,
     response_model=ThreadWithCommentsGet,
     name="Get the thread by id",
 )
@@ -59,7 +60,7 @@ async def get_thread(
 
 @thread_router.post(
     path="/{guid}",
-    status_code=201,
+    status_code=HTTPStatus.CREATED,
     response_model=ThreadWithCommentsGet,
     name="Create a new thread comment",
 )
@@ -74,7 +75,7 @@ async def create_thread_com(
 
 @thread_router.delete(
     path="/{guid}",
-    status_code=204,
+    status_code=HTTPStatus.NO_CONTENT,
     name="Delete the thread by id",
 )
 async def delete_thread(

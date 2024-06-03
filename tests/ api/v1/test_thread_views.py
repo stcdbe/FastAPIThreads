@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from httpx import AsyncClient
 
@@ -5,7 +7,7 @@ from httpx import AsyncClient
 @pytest.mark.asyncio(scope="session")
 async def test_get_some_threads(client: AsyncClient, user_token_headers: dict[str, str]) -> None:
     res = await client.get("/api/v1/threads", headers=user_token_headers)
-    assert res.status_code == 200
+    assert res.status_code == HTTPStatus.OK
 
 
 @pytest.mark.asyncio(scope="session")
@@ -13,7 +15,7 @@ async def test_create_thread(client: AsyncClient, user_token_headers: dict[str, 
     data = {"title": "test_title", "text": "test_text"}
     res = await client.post("/api/v1/threads", json=data, headers=user_token_headers)
     created_thread = res.json()
-    assert res.status_code == 201
+    assert res.status_code == HTTPStatus.CREATED
     assert created_thread
     for key, val in data.items():
         assert created_thread[key] == val
@@ -27,7 +29,7 @@ async def test_get_thread(
 ) -> None:
     res = await client.get(f"/api/v1/threads/{test_thread_guid}", headers=user_token_headers)
     thread = res.json()
-    assert res.status_code == 200
+    assert res.status_code == HTTPStatus.OK
     assert thread
     assert thread["guid"] == test_thread_guid
 
@@ -45,7 +47,7 @@ async def test_create_thread_com(
         headers=user_token_headers,
     )
     thread = res.json()
-    assert res.status_code == 201
+    assert res.status_code == HTTPStatus.CREATED
     assert thread
     assert com_data["text"] in {comment["text"] for comment in thread["comments"]}
 
@@ -57,4 +59,4 @@ async def test_del_thread(
     user_token_headers: dict[str, str],
 ) -> None:
     res = await client.delete(f"/api/v1/threads/{test_thread_guid}", headers=user_token_headers)
-    assert res.status_code == 403
+    assert res.status_code == HTTPStatus.FORBIDDEN

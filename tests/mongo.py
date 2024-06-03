@@ -17,5 +17,5 @@ async def get_test_thread_collection() -> AsyncGenerator[AsyncIOMotorCollection,
 
 
 async def clear_mongo_collections() -> None:
-    await test_mongo_db.drop_collection(name_or_collection=settings.MONGO_USER_COLLECTION)
-    await test_mongo_db.drop_collection(name_or_collection=settings.MONGO_THREAD_COLLECTION)
+    for collection in (settings.MONGO_THREAD_COLLECTION_TEST, settings.MONGO_USER_COLLECTION_TEST):
+        await test_mongo_db.drop_collection(name_or_collection=collection)
